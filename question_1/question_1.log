@@ -1,0 +1,540 @@
+-----------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/etorresram/Documents/STATA_test/question_1/question
+> _1.log
+  log type:  text
+ opened on:   1 Jul 2025, 01:17:58
+
+. 
+. 
+. ///////////////////////////////////////////////////////////////////
+> ///   QUESTION 1. Use of Brazil_2022.dta for poverty analysis.  ///
+> ///////////////////////////////////////////////////////////////////
+> 
+. use "${input}/Brazil_2022.dta", clear
+
+. 
+. 
+. *********************************************************************
+> ***************************
+. // A. Explain how the $3.00/day international poverty line is derived
+>  in at most one paragraph.
+. *********************************************************************
+> ***************************
+. 
+. /* The $3.00/day international poverty line is derived from the updat
+> e of the previous line of $2.15/day 
+>    incorporating the revised purchasing power parities (PPPs) from th
+> e International Comparison Program (ICP), 
+>    which moved from 2017 to 2021. This was done so that the new pover
+> ty estimates reflect the revisions 
+>    in national poverty lines due to better data, not just changes in 
+> prices. This new value is obtained computing 
+>    the median of national poverty lines in 23 low-income countries (s
+> electing one per country, the one closest 
+>    to 2021), which, after being harmonized, were adjusted by PPP to e
+> nsure comparability across countries. */
+. 
+.    
+. *********************************************************************
+> ***************************
+. // B. Calculate the international poverty rate on the data you have b
+> een provided.
+. *********************************************************************
+> ***************************
+. 
+. *  Poverty lines
+.    scalar poverty_line1 = 3
+
+.    scalar poverty_line2 = 4.2
+
+.    scalar poverty_line3 = 8.3
+
+. 
+. *  Per capita daily welfare in 2021 PPP dollars
+.    gen welfare_pc_day_ppp = (welfare_hh / hsize / 365) / (cpi * ppp)
+(50 missing values generated)
+
+.    label variable welfare_pc_day_ppp "Per capita daily welfare in 202
+> 1 PPP dollars"
+
+. 
+. *  Poverty variables
+. 
+.    gen poor1 = welfare_pc_day_ppp < poverty_line1
+
+.    label variable poor1 "Poverty rate $3.00/day (2021 PPP)"
+
+. 
+.    gen poor2 = welfare_pc_day_ppp < poverty_line2
+
+.    label variable poor2 "Poverty rate $4.20/day (2021 PPP)"
+
+.   
+.    gen poor3 = welfare_pc_day_ppp < poverty_line3
+
+.    label variable poor3 "Poverty rate $8.30/day (2021 PPP)"
+
+.    
+.    
+. 
+. *  Estimate poverty rate 
+.    mean poor1 [aw=weight]
+
+Mean estimation                   Number of obs   =     18,574
+
+--------------------------------------------------------------
+             |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+       poor1 |   .0446702   .0015158      .0416991    .0476413
+--------------------------------------------------------------
+
+.    
+. 
+.    
+. *********************************************************************
+> ***************************
+. // C. Calculate the international poverty rate by gender and educatio
+> n level, illustrate the 
+. //    results in a graph, and comment on the results in at most one p
+> aragraph.
+. *********************************************************************
+> ***************************
+. 
+.    mean poor1 [aw=weight], over(male)
+
+Mean estimation                   Number of obs   =     18,574
+
+       Female: male = Female
+         Male: male = Male
+
+--------------------------------------------------------------
+        Over |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+poor1        |
+      Female |   .0442496   .0021052      .0401233    .0483759
+        Male |   .0451065   .0021841      .0408254    .0493876
+--------------------------------------------------------------
+
+.    mean poor1 [aw=weight], over(educat7)
+
+Mean estimation                   Number of obs   =     18,574
+
+    _subpop_1: educat7 = No education
+    _subpop_2: educat7 = Primary incomplete
+    _subpop_3: educat7 = Primary complete
+    _subpop_4: educat7 = Secondary incomplete
+    _subpop_5: educat7 = Secondary complete
+    _subpop_6: educat7 = Higher than secondary but not un
+    _subpop_7: educat7 = University incomplete or complet
+
+--------------------------------------------------------------
+        Over |       Mean   Std. Err.     [95% Conf. Interval]
+-------------+------------------------------------------------
+poor1        |
+   _subpop_1 |    .069516   .0049583      .0597972    .0792348
+   _subpop_2 |   .0717908   .0031925      .0655332    .0780485
+   _subpop_3 |   .0398397   .0060416      .0279977    .0516818
+   _subpop_4 |   .0579221    .006199      .0457715    .0700727
+   _subpop_5 |   .0246054   .0024696      .0197647    .0294461
+   _subpop_6 |   .0037104   .0018407      .0001024    .0073184
+   _subpop_7 |   .0035674   .0013664      .0008892    .0062456
+--------------------------------------------------------------
+
+.    
+.    gen poor1_pct = poor1 * 100
+
+. 
+. 
+. * By Gender
+.     graph bar (mean) poor1_pct [aw=weight], over(male) ///
+>     ytitle("Poverty Rate (%)") title("Gender") ///
+>     blabel(bar, format(%4.1f) position(outside)) ///
+>     ylabel(0(2)10, format(%4.0f) angle(0)) /// 
+>     legend(off) name(g_gender, replace)
+
+. 
+. *  By educación
+.    gen tempvar1 = educat7
+
+.    graph bar (mean) poor1_pct [aw=weight], over(tempvar1, label(angle
+> (0))) ytitle("") ///
+>    title("Level of education") blabel(bar, format(%4.1f) position(out
+> side)) ///
+>     ylabel(0(2)10, format(%4.0f) angle(0)) ///
+>     note("1. No education" /// 
+>                 "2. Primary incomplete" ///
+>                 "3. Primary complete" ///
+>         "4. Secondary incomplete" ///
+>                 "5. Secondary complete" ///
+>                 "6. Higher (not university)" ///
+>         "7. University (complete or incomplete)", ///
+>         size(small) span pos(2) ring(0) width(60)) ///
+>     legend(off) ///
+>     name(g_edu, replace)
+(option span ignored for position(0))
+
+.         drop tempvar1
+
+. 
+. *  Combining both
+.     graph combine g_gender g_edu, ///
+>     title("International poverty rate by groups") ///
+>     col(2)
+(option span ignored for position(0))
+
+.         
+.         
+. /*  The poverty rate in Brazil reached 4.47% in 2022. Although this o
+> verall poverty figure is important, 
+> it is even more relevant to understand how it is distributed among di
+> fferent socioeconomic groups, 
+> such as gender and education level. Regarding the first, no gap is id
+> entified that significantly favors 
+> both men or women; certainly, this gap could change if we analyze bot
+> h groups in different contexts, 
+> whether geographically or socioculturally. Furthermore, the differenc
+> es in poverty rates by educational 
+> level are at first glance noticeable, showing an inverse relationship
+>  between educational level and poverty rates. 
+> The gap of 1.8 percentage points between the group with completed pri
+> mary education and those with incomplete 
+> secondary education stands out. Although this is certainly possible, 
+> it could also be related to the fact that 
+> this database is a sample of the real database, given that the number
+>  of observations in the group with completed 
+> primary education is the lowest of all categories and could be underr
+> epresented. */     
+. 
+. 
+. 
+. *********************************************************************
+> ***************************
+. // D. Write code that produces a table for excel showing poverty rate
+> s by gender and education 
+. //    level at varying poverty lines.
+. *********************************************************************
+> ***************************
+. 
+. // Excel sheet for poverty rates by gender
+. 
+. putexcel set "${output}/poverty_by_group.xlsx", sheet("Gender") repla
+> ce
+
+. 
+. * Header
+. putexcel A1=("Gender") B1=("Poverty Rate ($3/day)") C1=("Poverty Rate
+>  ($4.2/day)") D1=("Poverty Rate ($8.3/day)")
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+. 
+. 
+. // Excel table for poverty rates by gender
+. forvalues i = 0/1 {
+  2.     local label : label (male) `i'
+  3.     local row = `i' + 2
+  4. 
+.     tabstat poor1 if male == `i' [aw=weight], save
+  5.     putexcel A`row'=("`label'") B`row'=matrix(r(StatTotal))
+  6. 
+.     tabstat poor2 if male == `i' [aw=weight], save
+  7.     putexcel C`row'=matrix(r(StatTotal))
+  8. 
+.     tabstat poor3 if male == `i' [aw=weight], save
+  9.     putexcel D`row'=matrix(r(StatTotal))
+ 10. 
+. }
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0442496
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |  .0855217
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .2528267
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0451065
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |   .085881
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .2493807
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+. 
+. 
+. 
+. // Excel table for poverty rates by level of education
+. 
+. putexcel set "${output}/poverty_by_group.xlsx", sheet("Level of educa
+> tion") modify
+
+. 
+. * Header
+. putexcel A1=("Education Level") B1=("Poverty Rate ($3/day)") C1=("Pov
+> erty Rate ($4.2/day)") D1=("Poverty Rate ($8.3/day)") 
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+. 
+. * Values
+. forvalues i = 1/7 {
+  2.     local label : label (educat7) `i'
+  3.         local row = `i' + 1
+  4.         
+.     tabstat poor1 if educat7 == `i' [aw=weight], save
+  5.     putexcel A`row'=("`label'") B`row'=matrix(r(StatTotal))
+  6.         
+.         tabstat poor2 if educat7 == `i' [aw=weight], save
+  7.     putexcel C`row'=matrix(r(StatTotal))
+  8. 
+.     tabstat poor3 if educat7 == `i' [aw=weight], save
+  9.     putexcel D`row'=matrix(r(StatTotal))
+ 10. }
+
+    variable |      mean
+-------------+----------
+       poor1 |   .069516
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |   .129275
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .3820747
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0717908
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |  .1289487
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .3405534
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0398397
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |  .0815943
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .2246284
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0579221
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |  .1213225
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .3381859
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0246054
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |   .056262
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .2071713
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0037104
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |   .012171
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .0727822
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor1 |  .0035674
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor2 |  .0045261
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+    variable |      mean
+-------------+----------
+       poor3 |  .0208091
+------------------------
+file /Users/etorresram/Documents/STATA_test/output/poverty_by_group.xls
+> x saved
+
+. 
+. 
+. 
+. *********************************************************************
+> ******************************
+. // E. Calculate the prosperity gap on the data and comment on the res
+> ults in at most one paragraph.
+. *********************************************************************
+> ******************************
+. 
+. scalar prosperity_line = 25
+
+. 
+. * Gap for those below the threshold
+. gen prosperity_gap = prosperity_line - welfare_pc_day_ppp if welfare_
+> pc_day_ppp < prosperity_line
+(4,483 missing values generated)
+
+. replace prosperity_gap = 0 if missing(prosperity_gap)
+(4,483 real changes made)
+
+. 
+. * Now as percentage of the threshold
+. gen prosperity_gap_pct = 100 * prosperity_gap / prosperity_line if pr
+> osperity_gap > 0
+(4,483 missing values generated)
+
+. replace prosperity_gap_pct = 0 if missing(prosperity_gap_pct)
+(4,483 real changes made)
+
+. 
+. * average prosperity gap (in dollars and as a %)
+. mean prosperity_gap [aw=weight] if prosperity_gap > 0
+
+Mean estimation                   Number of obs   =     14,091
+
+----------------------------------------------------------------
+               |       Mean   Std. Err.     [95% Conf. Interval]
+---------------+------------------------------------------------
+prosperity_gap |   13.24719   .0523422      13.14459    13.34979
+----------------------------------------------------------------
+
+. mean prosperity_gap_pct [aw=weight] if prosperity_gap_pct > 0
+
+Mean estimation                   Number of obs   =     14,091
+
+--------------------------------------------------------------------
+                   |       Mean   Std. Err.     [95% Conf. Interval]
+-------------------+------------------------------------------------
+prosperity_gap_pct |   52.98876    .209369      52.57837    53.39915
+--------------------------------------------------------------------
+
+. 
+. 
+. /* According to the results obtained from this sample, on average, Br
+> azilians living below the prosperity 
+>    threshold have a daily deficit of $13.25 (PPP 2021), which is equi
+> valent to 53% of the prosperity threshold. 
+>    In other words, they only reach 47% of the income level required t
+> o live prosperously. */    
+. 
+. 
+. 
+. 
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/etorresram/Documents/STATA_test/question_1/question
+> _1.log
+  log type:  text
+ closed on:   1 Jul 2025, 01:18:00
+-----------------------------------------------------------------------
