@@ -104,9 +104,9 @@ use "${input}/Brazil_2022.dta", clear
 	drop tempvar1
 
 *  Combining both
-    graph combine g_gender g_edu, ///
-    title("International poverty rate by groups") ///
-    col(2)
+    graph combine g_gender g_edu, title("International poverty rate by groups") col(2)
+	graph export "${output}/poverty_by_group.png", replace width(2000)
+	
 	
 	
 /*  The poverty rate in Brazil reached 4.47% in 2022. Although this overall poverty figure is important, 
