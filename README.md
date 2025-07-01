@@ -6,7 +6,9 @@ This repository contains my submission for the take-home STATA test required as 
 ##  Repository Structure
 
 - `question_1.do` – Code for Question 1: International poverty analysis using `Brazil_2022.dta`.
+- `question_1.log` – Execution log for Question 1, including calculations, graphs, and tables.
 - `question_2.do` – Code for Question 2: Efficient computation of poverty and Gini coefficients from 1,000 simulation datasets.
+- `question_2.log` – Execution log for Question 2, including disaggregated results by state and performance timing.
 - `new_poverty.ado` – Custom ado-file to compute international poverty indicators by subgroup (e.g., state, rural).
 - `new_gini.ado` – Custom ado-file to compute Gini coefficients efficiently at national levels, and also  by subgroups (e.g., state, rural).
 - `question_3.docx` – Description of past STATA experience and context for the accompanying code.
